@@ -13,10 +13,9 @@ app.use(compression({
         return compression.filter(req, res);
     }
 }));
+
 app.set('view engine', 'ejs');
 app.set('trust proxy', 1);
-
-// Middleware to log requests and set headers
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
@@ -26,34 +25,36 @@ app.use(function (req, res, next) {
     console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode}`);
     next();
 });
-
-// Body parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Remove rate limiter to avoid blocking login attempts
-// app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
+// Remove rate limiter since it's causing issues with login.
+app.use((req, res, next) => {
+    next();
+});
 
+let storedToken = null; // Variable to store token temporarily
+
+// Route to handle the login form and dashboard
 app.all('/player/login/dashboard', function (req, res) {
     const tData = {};
     try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n'); 
-        const uName = uData[0].split('|'); 
+        const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
+        const uName = uData[0].split('|');
         const uPass = uData[1].split('|');
-        for (let i = 0; i < uData.length - 1; i++) { 
-            const d = uData[i].split('|'); 
-            tData[d[0]] = d[1]; 
+        for (let i = 0; i < uData.length - 1; i++) {
+            const d = uData[i].split('|');
+            tData[d[0]] = d[1];
         }
-        if (uName[1] && uPass[1]) { 
-            res.redirect('/player/growid/login/validate'); 
+        if (uName[1] && uPass[1]) {
+            res.redirect('/player/growid/login/validate');
         }
-    } catch (why) { 
-        console.log(`Warning: ${why}`); 
-    }
+    } catch (why) { console.log(`Warning: ${why}`); }
 
     res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
 });
 
+// Route to validate login and generate a token
 app.all('/player/growid/login/validate', (req, res) => {
     const _token = req.body._token;
     const growId = req.body.growId;
@@ -63,21 +64,34 @@ app.all('/player/growid/login/validate', (req, res) => {
         `_token=${_token}&growId=${growId}&password=${password}`,
     ).toString('base64');
 
+    // Store the token for later validation (in a real app, use a session or database)
+    storedToken = token;
+
     res.send(
         `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
     );
 });
 
+// Route to check the token and allow login if valid
 app.all('/player/growid/checktoken', (req, res) => {
-    const refreshToken = req.body;
-    let data = {
-        status: "success",
-        message: "Account Validated",
-        token: refreshToken,  // Corrected property syntax
-        url: "",
-        accountType: "growtopia"
-    };
-    res.send(data);
+    const refreshToken = req.body.token;  // Expecting a token in the request body
+
+    if (storedToken && storedToken === refreshToken) {
+        // Token is valid, allow login
+        res.send({
+            status: "success",
+            message: "Token validated. Login successful.",
+            token: refreshToken,
+            url: "",
+            accountType: "growtopia"
+        });
+    } else {
+        // Invalid token
+        res.status(400).send({
+            status: "error",
+            message: "Invalid or expired token.",
+        });
+    }
 });
 
 app.get('/', function (req, res) {
