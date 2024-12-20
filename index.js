@@ -58,12 +58,13 @@ app.all('/player/growid/checktoken', (req, res) => {
     let data = {
         status: "success",
         message: "Account Validated",
-        token = refreshToken,
+        token: refreshToken,  // Corrected property syntax
         url: "",
         accountType: "growtopia"
     };
     res.send(data);
 });
+
 app.get('/', function (req, res) {
     res.send('Hello World!');
 });
