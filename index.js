@@ -72,7 +72,6 @@ app.all('/player/growid/login/validate', (req, res) => {
     );
 });
 
-// Route to check the token and allow login if valid
 app.all('/player/growid/checktoken', (req, res) => {
     const refreshToken = req.body.token;  // Expecting a token in the request body
 
@@ -93,6 +92,7 @@ app.all('/player/growid/checktoken', (req, res) => {
         });
     }
 });
+
 
 app.get('/', function (req, res) {
     res.send('Hello World!');
