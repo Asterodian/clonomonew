@@ -38,7 +38,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="flex justify-end items-center">
+                <div class="text-xs text-white font-bold mt-2">Note: Leave username and password empty to create a new account.</div>
+                <div class="flex justify-end items-center mt-3">
                     <button id="loginButton" class="px-2 py-1 rounded bg-[#00b8ff] text-white text-xs hover:bg-[#06a4dd] transition duration-300 ease-in-out transform hover:scale-105">Login</button>
                 </div>
             </form>
@@ -49,10 +50,8 @@
             if (localStorage.getItem('growId')) {
                 document.getElementById('loginGrowId').value = localStorage.getItem('growId');
             }
-
-            const loginGrowId = document.getElementById('loginGrowId').value
-            const loginPassword = document.getElementById('loginPassword').value
         });
+
         document.getElementById('loginButton').addEventListener('click', function (event) {
             event.preventDefault();
 
@@ -60,19 +59,28 @@
             const uName = document.getElementById('loginGrowId').value;
             const uPass = document.getElementById('loginPassword').value;
 
-            if (!uName || !uPass) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password is empty';
-                return;
-            } else if (uName.length < 4 || uPass.length < 4) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password must be at least 4 characters long';
-                return;
-            } else {
+            const errorDiv = document.getElementById('errorDiv');
+            const errorMessage = document.getElementById('errorMessage');
+            errorDiv.classList.add('hidden'); // Reset error state
+
+            // Allow empty username and password for account creation
+            if (!uName && !uPass) {
                 loginForm.submit();
-                localStorage.setItem('growId', document.getElementById('loginGrowId').value);
+                return;
             }
-        })
+
+            // Check for other conditions
+            if (uName.length < 4 || uPass.length < 4) {
+                errorDiv.classList.remove('hidden');
+                errorMessage.innerHTML = 'Username or Password must be at least 4 characters long';
+                return;
+            }
+
+            // Save GrowID to localStorage and submit the form
+            localStorage.setItem('growId', uName);
+            loginForm.submit();
+        });
+
         document.getElementById('toggleLogPassword').addEventListener('click', function () {
             const LpasswordField = document.getElementById('loginPassword')
             const LpasswordFieldType = LpasswordField.getAttribute('type');
