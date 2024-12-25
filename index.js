@@ -72,27 +72,29 @@ app.all('/player/growid/login/validate', (req, res) => {
     );
 });
 
-app.all('/player/growid/checktoken', (req, res) => {
-    const refreshToken = req.body.token;  // Expecting a token in the request body
+app.all('/player/growid/checkToken', (req, res) => {
+    try {
+        const { refreshToken, clientData } = req.body;
 
-    if (storedToken && storedToken === refreshToken) {
-        // Token is valid, allow login
+        if (!refreshToken || !clientData) {
+            return res.status(400).send({ status: "error", message: "Missing refreshToken or clientData" });
+        }
+
+        let decodeRefreshToken = Buffer.from(refreshToken, 'base64').toString('utf-8');
+
+        const token = Buffer.from(decodeRefreshToken.replace(/(_token=)[^&]*/, `$1${Buffer.from(clientData).toString('base64')}`)).toString('base64');
+
         res.send({
             status: "success",
-            message: "Token validated. Login successful.",
-            token: refreshToken,
+            message: "Token is valid.",
+            token: token,
             url: "",
             accountType: "growtopia"
         });
-    } else {
-        // Invalid token
-        res.status(400).send({
-            status: "error",
-            message: "Invalid or expired token.",
-        });
+    } catch (error) {
+        res.status(500).send({ status: "error", message: "Internal Server Error" });
     }
 });
-
 
 app.get('/', function (req, res) {
     res.send('Hello World!');
