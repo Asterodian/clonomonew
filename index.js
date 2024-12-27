@@ -34,55 +34,27 @@ app.all('/player/register', function(req, res) {
 app.all('/player/login/dashboard', function (req, res) {
     const tData = {};
     try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
-        const uName = uData[0].split('|');
-        const uPass = uData[1].split('|');
-
-        for (let i = 0; i < uData.length - 1; i++) {
-            const d = uData[i].split('|');
-            tData[d[0]] = d[1];
-        }
-
-        if (uName[1] && uPass[1]) {
-            // Tambahkan data login ke query string
-            return res.redirect(`/player/growid/login/validate?_token=${uName[1]}&growId=${uPass[1]}&password=${uPass[1]}`);
-        }
-    } catch (why) {
-        console.log(`Warning: ${why}`);
-    }
+        const uData = JSON.stringify(req.body).split('"')[1].split('\\n'); const uName = uData[0].split('|'); const uPass = uData[1].split('|');
+        for (let i = 0; i < uData.length - 1; i++) { const d = uData[i].split('|'); tData[d[0]] = d[1]; }
+        if (uName[1] && uPass[1]) { res.redirect('/player/growid/login/validate'); }
+    } catch (why) { console.log(`Warning: ${why}`); }
 
     res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
 });
 
-
-
 app.all('/player/growid/login/validate', (req, res) => {
-    const _token = req.query._token;
-    const growId = req.query.growId;
-    const password = req.query.password;
+    const _token = req.body._token;
+    const growId = req.body.growId;
+    const password = req.body.password;
 
-    // Validasi apakah semua data tersedia
-    if (!_token || !growId || !password) {
-        return res.status(400).send({
-            status: 'error',
-            message: 'Invalid login credentials provided.',
-        });
-    }
-
-    // Encode token
     const token = Buffer.from(
         `_token=${_token}&growId=${growId}&password=${password}`,
     ).toString('base64');
 
-    res.send({
-        status: 'success',
-        message: 'Account Validated.',
-        token: token,
-        url: '',
-        accountType: 'growtopia',
-    });
+    res.send(
+        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
+    );
 });
-
 
 app.all('/player/growid/checktoken', (req, res) => {
     const { refreshToken } = req.body;
