@@ -60,30 +60,19 @@ app.all('/player/login/dashboard', function (req, res) {
 
 
 app.all('/player/growid/login/validate', (req, res) => {
-    const loginData = req.session.loginData;
+    const _token = req.body._token;
+    const growId = req.body.growId;
+    const password = req.body.password;
 
-    if (!loginData) {
-        return res.status(400).send({
-            status: 'error',
-            message: 'No login data found. Please try again.',
-        });
-    }
-
-    const { _token, growId, password } = loginData;
-
+    //`_token=${_token}&growId=${growId}&password=${password}`,
     const token = Buffer.from(
-        `_token=${_token}&growId=${growId}&password=${password}`,
+        `_token={"token":${_token},"GrowID":"${growId}","Password":"${password}"}`,
     ).toString('base64');
 
-    res.send({
-        status: 'success',
-        message: 'Account Validated.',
-        token: token,
-        url: '',
-        accountType: 'growtopia',
-    });
+    res.send(
+        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
+    );
 });
-
 
 app.all('/player/growid/checktoken', (req, res) => {
     const { refreshToken } = req.body;
