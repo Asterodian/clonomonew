@@ -32,7 +32,6 @@ app.all('/player/register', function(req, res) {
   
 });
 app.all('/player/login/dashboard', function (req, res) {
-    console.log('Request Body:', req.body);  // Log untuk melihat input yang masuk
     const tData = {};
     try {
         const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
@@ -42,19 +41,27 @@ app.all('/player/login/dashboard', function (req, res) {
             const d = uData[i].split('|');
             tData[d[0]] = d[1];
         }
-        
-        console.log('Parsed Data:', tData);  // Log hasil parsing data
-        
-        if (uName[1] && uPass[1]) {
+
+ 
+        const userAgent = req.headers['user-agent'] || '';
+
+  
+        if (/android/i.test(userAgent)) {
+            console.log('Request from Android device.');
+            return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
+        } else if (/windows/i.test(userAgent)) {
+            console.log('Request from Windows device.');
             return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         } else {
-            res.redirect('/player/growid/login/validate');
+            console.log('Request from other device.');
+            return res.status(400).send('Unsupported device');
         }
     } catch (why) {
         console.log(`Warning: ${why}`);
         res.redirect('/player/growid/login/validate');
     }
 });
+
 
 
 
