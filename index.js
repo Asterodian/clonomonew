@@ -42,15 +42,16 @@ app.all('/player/login/dashboard', function (req, res) {
             tData[d[0]] = d[1];
         }
 
- 
         const userAgent = req.headers['user-agent'] || '';
 
-  
         if (/android/i.test(userAgent)) {
             console.log('Request from Android device.');
             return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         } else if (/windows/i.test(userAgent)) {
             console.log('Request from Windows device.');
+            return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
+        } else if (/iphone|ipad|ipod/i.test(userAgent)) {
+            console.log('Request from iOS device.');
             return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         } else {
             console.log('Request from other device.');
