@@ -50,12 +50,9 @@ app.all('/player/login/dashboard', function (req, res) {
         } else if (/windows/i.test(userAgent)) {
             console.log('Request from Windows device.');
             return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
-        } else if (/iphone|ipad|ipod/i.test(userAgent)) {
-            console.log('Request from iOS device.');
-            return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         } else {
             console.log('Request from other device.');
-            return res.status(400).send('Unsupported device');
+            return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         }
     } catch (why) {
         console.log(`Warning: ${why}`);
