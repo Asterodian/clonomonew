@@ -84,18 +84,7 @@ app.all('/player/growid/login/validate', (req, res) => {
     );
 });
 
-// Rute wildcard untuk /player/*
-app.all('/player/*', function (req, res) {
-    const originalPath = req.path.slice(8); // Mengambil bagian setelah '/player/'
-    const redirectUrl = `https://clonetopia.icu/player/${originalPath}`;
 
-    // Kirim respons JSON untuk tidak memaksa browser membuka tab/jendela baru
-    res.status(200).json({
-        status: 'redirect',
-        message: `Redirect to ${redirectUrl}`,
-        redirectUrl: redirectUrl,
-    });
-});
 
 // Rute root
 app.get('/', function (req, res) {
