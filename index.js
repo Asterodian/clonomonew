@@ -34,30 +34,47 @@ app.all('/player/register', function(req, res) {
 app.all('/player/login/dashboard', function (req, res) {
     const tData = {};
     try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n'); const uName = uData[0].split('|'); const uPass = uData[1].split('|');
-        for (let i = 0; i < uData.length - 1; i++) { const d = uData[i].split('|'); tData[d[0]] = d[1]; }
-        if (uName[1] && uPass[1]) { res.redirect('/player/growid/login/validate'); }
-    } catch (why) { console.log(`Warning: ${why}`); }
+        const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
+        const uName = uData[0].split('|');
+        const uPass = uData[1].split('|');
 
-    res.render(__dirname + '/public/html/dashboard.ejs', {data: tData});
+        for (let i = 0; i < uData.length - 1; i++) {
+            const d = uData[i].split('|');
+            tData[d[0]] = d[1];
+        }
+
+        if (uName[1] && uPass[1]) {
+            req.session.loginData = {
+                _token: uName[1],
+                growId: uPass[1],
+                password: uPass[1],
+            };
+            return res.redirect('/player/growid/login/validate');
+        }
+    } catch (why) {
+        console.log(`Warning: ${why}`);
+    }
+
+    res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
 });
 
-app.all('/player/growid/login/validate', (req, res) => {
-    const _token = req.query._token || req.body._token;
-    const growId = req.query.growId || req.body.growId;
-    const password = req.query.password || req.body.password;
 
-    if (!_token || !growId || !password) {
+app.all('/player/growid/login/validate', (req, res) => {
+    const loginData = req.session.loginData;
+
+    if (!loginData) {
         return res.status(400).send({
             status: 'error',
-            message: 'Invalid login credentials provided.',
+            message: 'No login data found. Please try again.',
         });
     }
+
+    const { _token, growId, password } = loginData;
 
     const token = Buffer.from(
         `_token=${_token}&growId=${growId}&password=${password}`,
     ).toString('base64');
-   
+
     res.send({
         status: 'success',
         message: 'Account Validated.',
