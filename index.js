@@ -32,6 +32,7 @@ app.all('/player/register', function(req, res) {
   
 });
 app.all('/player/login/dashboard', function (req, res) {
+    console.log('Request Body:', req.body);  // Log untuk melihat input yang masuk
     const tData = {};
     try {
         const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
@@ -42,17 +43,19 @@ app.all('/player/login/dashboard', function (req, res) {
             tData[d[0]] = d[1];
         }
         
-        // Periksa apakah nama pengguna dan kata sandi sudah ada, baru redirect
+        console.log('Parsed Data:', tData);  // Log hasil parsing data
+        
         if (uName[1] && uPass[1]) {
             return res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
         } else {
-            res.redirect('/player/growid/login/validate');  // Redirect jika tidak ada data yang valid
+            res.redirect('/player/growid/login/validate');
         }
     } catch (why) {
         console.log(`Warning: ${why}`);
         res.redirect('/player/growid/login/validate');
     }
 });
+
 
 
 app.all('/player/growid/login/validate', (req, res) => {
