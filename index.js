@@ -43,18 +43,31 @@ app.all('/player/login/dashboard', function (req, res) {
 });
 
 app.all('/player/growid/login/validate', (req, res) => {
-    const _token = req.body._token;
-    const growId = req.body.growId;
-    const password = req.body.password;
+    const _token = req.query._token || req.body._token;
+    const growId = req.query.growId || req.body.growId;
+    const password = req.query.password || req.body.password;
+
+    if (!_token || !growId || !password) {
+        return res.status(400).send({
+            status: 'error',
+            message: 'Invalid login credentials provided.',
+        });
+    }
 
     const token = Buffer.from(
         `_token=${_token}&growId=${growId}&password=${password}`,
     ).toString('base64');
    
-    res.send(
-        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
-    );
+    res.send({
+        status: 'success',
+        message: 'Account Validated.',
+        token: token,
+        url: '',
+        accountType: 'growtopia',
+    });
 });
+
+
 app.all('/player/growid/checktoken', (req, res) => {
     const { refreshToken } = req.body;
     try {
