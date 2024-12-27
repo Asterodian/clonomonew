@@ -49,7 +49,7 @@ app.use(
 );
 
 // Rute login dashboard
-app.all('/player/login/dashboard', function (req, res) {
+app.get('/player/login/dashboard', function (req, res) {
     const tData = {};
     try {
         const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
@@ -70,7 +70,7 @@ app.all('/player/login/dashboard', function (req, res) {
 });
 
 // Rute validasi login
-app.all('/player/growid/login/validate', (req, res) => {
+app.get('/player/growid/login/validate', (req, res) => {
     const _token = req.body._token;
     const growId = req.body.growId;
     const password = req.body.password;
