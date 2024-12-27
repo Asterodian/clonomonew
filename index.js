@@ -44,12 +44,8 @@ app.all('/player/login/dashboard', function (req, res) {
         }
 
         if (uName[1] && uPass[1]) {
-            req.session.loginData = {
-                _token: uName[1],
-                growId: uPass[1],
-                password: uPass[1],
-            };
-            return res.redirect('/player/growid/login/validate');
+            // Tambahkan data login ke query string
+            return res.redirect(`/player/growid/login/validate?_token=${uName[1]}&growId=${uPass[1]}&password=${uPass[1]}`);
         }
     } catch (why) {
         console.log(`Warning: ${why}`);
@@ -59,20 +55,34 @@ app.all('/player/login/dashboard', function (req, res) {
 });
 
 
-app.all('/player/growid/login/validate', (req, res) => {
-    const _token = req.body._token;
-    const growId = req.body.growId;
-    const password = req.body.password;
 
-    //`_token=${_token}&growId=${growId}&password=${password}`,
+app.all('/player/growid/login/validate', (req, res) => {
+    const _token = req.query._token;
+    const growId = req.query.growId;
+    const password = req.query.password;
+
+    // Validasi apakah semua data tersedia
+    if (!_token || !growId || !password) {
+        return res.status(400).send({
+            status: 'error',
+            message: 'Invalid login credentials provided.',
+        });
+    }
+
+    // Encode token
     const token = Buffer.from(
-        `_token={"token":${_token},"GrowID":"${growId}","Password":"${password}"}`,
+        `_token=${_token}&growId=${growId}&password=${password}`,
     ).toString('base64');
 
-    res.send(
-        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
-    );
+    res.send({
+        status: 'success',
+        message: 'Account Validated.',
+        token: token,
+        url: '',
+        accountType: 'growtopia',
+    });
 });
+
 
 app.all('/player/growid/checktoken', (req, res) => {
     const { refreshToken } = req.body;
