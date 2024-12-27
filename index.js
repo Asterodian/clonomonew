@@ -4,63 +4,72 @@ const bodyParser = require('body-parser');
 const rateLimiter = require('express-rate-limit');
 const compression = require('compression');
 
-app.use(compression({
-    level: 5,
-    threshold: 0,
-    filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-            return false;
-        }
-        return compression.filter(req, res);
-    }
-}));
+// Middleware untuk kompresi
+app.use(
+    compression({
+        level: 5,
+        threshold: 0,
+        filter: (req, res) => {
+            if (req.headers['x-no-compression']) {
+                return false;
+            }
+            return compression.filter(req, res);
+        },
+    }),
+);
+
+// Middleware untuk view engine dan proxy
 app.set('view engine', 'ejs');
 app.set('trust proxy', 1);
+
+// Middleware untuk header CORS
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept',
     );
-    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode}`);
+    console.log(
+        `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode}`,
+    );
     next();
 });
+
+// Middleware untuk parsing body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Middleware to block browser access to /player routes
-app.use('/player', (req, res, next) => {
-    const userAgent = req.headers['user-agent'] || '';
-    
-    // Check for common browser user agents
-    if (/Mozilla|Chrome|Safari|Edge|Firefox|Opera|Trident/i.test(userAgent)) {
-        res.status(403).send('Access Denied');
-    } else {
-        next(); // Allow non-browser requests
-    }
-});
+// Middleware untuk rate limiter
+app.use(
+    rateLimiter({
+        windowMs: 15 * 60 * 1000,
+        max: 100,
+        headers: true,
+    }),
+);
 
+// Rute login dashboard
 app.all('/player/login/dashboard', function (req, res) {
     const tData = {};
     try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n'); 
-        const uName = uData[0].split('|'); 
+        const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
+        const uName = uData[0].split('|');
         const uPass = uData[1].split('|');
-        for (let i = 0; i < uData.length - 1; i++) { 
-            const d = uData[i].split('|'); 
-            tData[d[0]] = d[1]; 
+        for (let i = 0; i < uData.length - 1; i++) {
+            const d = uData[i].split('|');
+            tData[d[0]] = d[1];
         }
-        if (uName[1] && uPass[1]) { 
-            res.redirect('/player/growid/login/validate'); 
+        if (uName[1] && uPass[1]) {
+            res.redirect('/player/growid/login/validate');
         }
-    } catch (why) { 
-        console.log(`Warning: ${why}`); 
+    } catch (why) {
+        console.log(`Warning: ${why}`);
     }
 
     res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
 });
 
+// Rute validasi login
 app.all('/player/growid/login/validate', (req, res) => {
     const _token = req.body._token;
     const growId = req.body.growId;
@@ -75,14 +84,25 @@ app.all('/player/growid/login/validate', (req, res) => {
     );
 });
 
+// Rute wildcard untuk /player/*
 app.all('/player/*', function (req, res) {
-    res.status(301).redirect('https://clonetopia.icu/player/' + req.path.slice(8));
+    const originalPath = req.path.slice(8); // Mengambil bagian setelah '/player/'
+    const redirectUrl = `https://clonetopia.icu/player/${originalPath}`;
+
+    // Kirim respons JSON untuk tidak memaksa browser membuka tab/jendela baru
+    res.status(200).json({
+        status: 'redirect',
+        message: `Redirect to ${redirectUrl}`,
+        redirectUrl: redirectUrl,
+    });
 });
 
+// Rute root
 app.get('/', function (req, res) {
     res.send('Hello World!');
 });
 
+// Menjalankan server
 app.listen(5000, function () {
     console.log('Listening on port 5000');
 });
